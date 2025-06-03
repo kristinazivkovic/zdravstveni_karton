@@ -17,7 +17,6 @@ class ZdravstveniKarton extends Model
         'krvni_pritisak',
         'dijagnoza',
         'tretman',
-        // dodaj ostale kolone koje imaš u migraciji
     ];
     protected $table = 'zdravstveni_kartoni';
 
@@ -30,5 +29,10 @@ class ZdravstveniKarton extends Model
     public function lekar()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function pregledi()
+    {
+        return $this->hasMany(Pregled::class, 'karton_id');
     }
 }

@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PacijentController;
 use App\Http\Controllers\ZdravstveniKartonController;
+use Illuminate\Cache\RateLimiting\Limit;
+
 
 // Test ruta (opciono)
 Route::get('/ping', function () {
@@ -28,4 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     
     // Ostale zaštićene rute...
+});
+
+// ✅ Definiši rate limiter ako nedostaje
+RateLimiter::for('api', function (Request $request) {
+    return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/pregledi', [PregledController::class, 'index']);
+    // ...
 });
