@@ -13,9 +13,15 @@ return new class extends Migration
     {
         Schema::create('pacijenti', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->date('date_of_birth');
-            $table->string('medical_history');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->date('datum_rodjenja');
+            $table->string('ime');
+            $table->string('prezime');
+            $table->string('jmbg')->unique();  
+            $table->string('pol'); 
+            $table->string('email')->unique();
+            $table->text('istorija_pacijenta');
+            $table->string('telefon');
             $table->timestamps();
         });
     }

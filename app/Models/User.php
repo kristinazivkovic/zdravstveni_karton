@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -45,4 +46,35 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function pacijent()
+    {
+    return $this->hasOne(Pacijent::class, 'user_id');
+    }
+
+    public function kartoni()
+    {
+    return $this->hasMany(ZdravstveniKarton::class, 'user_id');
+    }
+    public function isDoktor()
+    {
+        return $this->role === 'doktor';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPacijent()
+    {
+        return $this->role === 'pacijent';
+    }
+    // app/Models/User.php
+    public function createToken(string $name)
+    {
+        return $this->morphMany(PersonalAccessToken::class, 'tokenable')
+                ->create(['name' => $name, 'token' => Str::random(40)]);
+    }
+
 }

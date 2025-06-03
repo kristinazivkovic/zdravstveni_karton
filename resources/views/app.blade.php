@@ -5,9 +5,8 @@
     <title>Zdravstveni karton</title>
 </head>
 <body>
-    <h1>Dobrodošli na Zdravstveni karton</h1>
-    <p> Klikni dugme ispod da vidis listu nindzi</p>
-    <a herf= "" class="btn">Nadji nindze!
-    </a>
+    <div class="container">
+        @yield('content')
+    </div>
 </body>
 </html>

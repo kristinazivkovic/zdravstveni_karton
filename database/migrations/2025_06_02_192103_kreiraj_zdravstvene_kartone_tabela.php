@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ZdravstveniKarton', function (Blueprint $table) {
+        Schema::create('zdravstveni_kartoni', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_id')->constrained('pacijenti');
-            $table->date('record_date');
-            $table->text('diagnosis');
-            $table->text('treatment');
+            $table->foreignId('pacijent_id')->constrained('pacijenti')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->float('visina');
+            $table->float('tezina');
+            $table->string('krvni_pritisak');
+            $table->text('dijagnoza');
+            $table->text('tretman');
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ZdravstveniKarton');
+        Schema::dropIfExists('zdravstveni_kartoni');
     }
 };
