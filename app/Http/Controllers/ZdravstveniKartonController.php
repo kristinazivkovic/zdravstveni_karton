@@ -16,7 +16,7 @@ class ZdravstveniKartonController extends Controller
                 return response()->json(['message' => 'Nedozvoljen pristup'], 403);
             }
             return $next($request);
-        })->except(['index', 'show']);
+        })->except(['show']);
     }
 
     /**
@@ -33,6 +33,8 @@ class ZdravstveniKartonController extends Controller
      */
     public function store(Request $request)
     {
+        
+        
         $validated = $request->validate([
             'pacijent_id' => 'required|exists:pacijenti,id',
             'visina' => 'required|numeric|min:0',
@@ -41,6 +43,10 @@ class ZdravstveniKartonController extends Controller
             'dijagnoza' => 'required|string',
             'tretman' => 'required|string',
         ]);
+
+        if (ZdravstveniKarton::where('pacijent_id', $validated['pacijent_id'])->exists()) {
+            return response()->json(['message' => 'Karton za ovog pacijenta već postoji'], 409);
+        }
 
         $validated['user_id'] = auth()->id();
 
@@ -57,6 +63,14 @@ class ZdravstveniKartonController extends Controller
      */
     public function show(ZdravstveniKarton $karton)
     {
+        $karton = ZdravstveniKarton::findOrFail($karton);
+
+        // Ako je pacijent, može da vidi samo svoj karton
+            
+        if (auth()->user()->isPacijent() && auth()->user()->id !== $karton->pacijent_id) {
+            return response()->json(['message' => 'Nemate dozvolu da pristupite ovom kartonu'], 403);
+        }
+
         return response()->json($karton->load(['pacijent', 'lekar']));
     }
 
