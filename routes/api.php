@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // RESTful rute za zdravstvene kartone
     Route::apiResource('kartoni', ZdravstveniKartonController::class);
     Route::apiResource('pregledi', PregledController::class);
+    Route::patch('/zdravstveni-kartoni/{karton}/promeni-lekara', [ZdravstveniKartonController::class, 'promeniLekara']);
+    Route::get('/lekari', [ZdravstveniKartonController::class, 'listaLekara']);
 });
 
 

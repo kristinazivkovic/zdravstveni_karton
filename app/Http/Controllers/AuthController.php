@@ -19,14 +19,14 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => 'sometimes|in:admin,doktor,pacijent'
+            'role' => 'sometimes|in:doktor,pacijent' // Uklonjen 'admin' iz dozvoljenih uloga
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'pacijent'
+            'role' => $request->role ?? 'pacijent' // Podrazumevana uloga je pacijent
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
