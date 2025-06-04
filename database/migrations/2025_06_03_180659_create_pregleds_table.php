@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('pregledi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('karton_id')->constrained('zdravstveni_kartoni')->onDelete('cascade');
-            $table->foreignId('lekar_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('lekar_id')->nullable()->constrained('users')->nullOnDelete();
             $table->date('datum');
-            $table->string('tip_pregleda'); // npr. "rutinski", "specijalistički"
+            $table->string('tip_pregleda'); 
             $table->text('opis');
             $table->timestamps();
         });

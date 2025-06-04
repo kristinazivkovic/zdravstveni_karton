@@ -16,6 +16,8 @@ class Pregled extends Model
         'opis',
     ];
 
+    protected $table = 'pregledi';
+
     public function karton()
     {
         return $this->belongsTo(ZdravstveniKarton::class, 'karton_id');
