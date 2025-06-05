@@ -31,12 +31,15 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // RESTful rute za pacijente
     Route::apiResource('pacijenti', PacijentController::class);
+    Route::get('/pacijenti', [PacijentController::class, 'index']);
 
     // RESTful rute za zdravstvene kartone
     Route::apiResource('kartoni', ZdravstveniKartonController::class);
     Route::apiResource('pregledi', PregledController::class);
     Route::patch('/zdravstveni-kartoni/{karton}/promeni-lekara', [ZdravstveniKartonController::class, 'promeniLekara']);
     Route::get('/lekari', [ZdravstveniKartonController::class, 'listaLekara']);
+    Route::middleware('auth:sanctum')->get('/kartoni', [ZdravstveniKartonController::class, 'index']);
+    Route::get('/zdravstveni-kartoni/export/csv', [ZdravstveniKartonController::class, 'exportCsv']);
 });
 
 

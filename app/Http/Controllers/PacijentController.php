@@ -17,24 +17,32 @@ class PacijentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-
+    
+        // Pripremi osnovni query sa relacijama
+        $query = Pacijent::with(['user', 'zdravstveniKarton']);
+    
+        // Dodaj filter po jmbg ako je prosleđen
+        if ($request->filled('jmbg')) {
+            $query->where('jmbg', 'like', '%' . $request->jmbg . '%');
+        }
+    
         if ($user->isAdmin()) {
-            $pacijenti = Pacijent::with(['user', 'zdravstveniKarton'])->get();
-            return PacijentResource::collection($pacijenti);
-            } elseif ($user->isDoktor()) {
-            $pacijenti = Pacijent::with(['user', 'zdravstveniKarton'])
-            ->whereHas('zdravstveniKarton', function($query) use ($user) {
-            $query->where('user_id', $user->id); // ← koristi user_id ako je lekar
+            $pacijenti = $query->get();
+        } elseif ($user->isDoktor()) {
+            $pacijenti = $query->whereHas('zdravstveniKarton', function($queryK) use ($user) {
+                $queryK->where('user_id', $user->id);
             })->get();
-
-            return PacijentResource::collection($pacijenti);
-         } else {
+        } else {
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
+        }
+    
+        return PacijentResource::collection($pacijenti);
     }
-}
+    
+
 
     /**
      * Store a newly created resource in storage.

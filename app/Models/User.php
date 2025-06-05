@@ -79,4 +79,9 @@ class User extends Authenticatable
         return $this->hasMany(Pregled::class, 'lekar_id');
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        \Log::info("Reset token: $token");
+    }
+
 }

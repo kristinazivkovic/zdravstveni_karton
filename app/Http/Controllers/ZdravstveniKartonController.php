@@ -17,22 +17,44 @@ class ZdravstveniKartonController extends Controller
     /**
      * Prikaz svih zdravstvenih kartona
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        
+    
+        $query = ZdravstveniKarton::with(['pacijent', 'lekar']);
+    
+        // Filter po jmbg pacijenta
+        if ($request->filled('jmbg')) {
+            $jmbg = $request->jmbg;
+            $query->whereHas('pacijent', function ($q) use ($jmbg) {
+                $q->where('jmbg', 'like', "%$jmbg%");
+            });
+        }
+    
+        // Filter po lekar_id
+        if ($request->filled('lekar_id')) {
+            $query->where('lekar_id', $request->lekar_id);
+        }
+    
+        // Filter po imenu lekara
+        if ($request->filled('lekar_ime')) {
+            $ime = $request->lekar_ime;
+            $query->whereHas('lekar', function ($q) use ($ime) {
+                $q->where('name', 'like', "%$ime%");
+            });
+        }
+    
         if ($user->isAdmin()) {
-            $kartoni = ZdravstveniKarton::with(['pacijent', 'lekar'])->get();
+            $kartoni = $query->get();
         } elseif ($user->isDoktor()) {
-            $kartoni = ZdravstveniKarton::with(['pacijent', 'lekar'])
-                ->where('lekar_id', $user->id)
-                ->get();
+            $kartoni = $query->where('lekar_id', $user->id)->get();
         } else {
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
         }
-
+    
         return ZdravstveniKartonResource::collection($kartoni);
     }
+    
 
     /**
      * Kreiranje novog zdravstvenog kartona
@@ -207,5 +229,40 @@ class ZdravstveniKartonController extends Controller
     
         return response()->json($lekari);
     }
+
+    public function exportCsv()
+    {
+        $kartoni = ZdravstveniKarton::with(['pacijent', 'lekar'])->get();
+    
+        $csvHeader = ['ID', 'Pacijent', 'Lekar', 'Visina', 'Tezina', 'Dijagnoza'];
+        $callback = function () use ($kartoni, $csvHeader) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $csvHeader);
+    
+            foreach ($kartoni as $karton) {
+                fputcsv($file, [
+                    $karton->id,
+                    $karton->pacijent->ime . ' ' . $karton->pacijent->prezime,
+                    $karton->lekar->name,
+                    $karton->visina,
+                    $karton->tezina,
+                    $karton->dijagnoza,
+                ]);
+            }
+    
+            fclose($file);
+        };
+    
+        return response()->stream($callback, 200, [
+            "Content-Type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=\"zdravstveni_kartoni.csv\"",
+        ]);
+    }
+
+    return response()->stream($callback, 200, [
+        "Content-Type" => "text/csv",
+        "Content-Disposition" => "attachment; filename=\"zdravstveni_kartoni.csv\"",
+    ]);
+}
 
 }
