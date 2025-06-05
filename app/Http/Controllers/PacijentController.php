@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\PacijentResource;
 use App\Models\Pacijent;
 use App\Models\ZdravstveniKarton;
 
@@ -19,20 +20,21 @@ class PacijentController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         if ($user->isAdmin()) {
-            return response()->json(Pacijent::all());
-        } elseif ($user->isDoktor()) {
-            // Lekar vidi samo svoje pacijente
-            $pacijenti = Pacijent::whereHas('zdravstveniKarton', function($query) use ($user) {
-                $query->where('lekar_id', $user->id);
+            $pacijenti = Pacijent::with(['user', 'zdravstveniKarton'])->get();
+            return PacijentResource::collection($pacijenti);
+            } elseif ($user->isDoktor()) {
+            $pacijenti = Pacijent::with(['user', 'zdravstveniKarton'])
+            ->whereHas('zdravstveniKarton', function($query) use ($user) {
+            $query->where('user_id', $user->id); // ← koristi user_id ako je lekar
             })->get();
-            
-            return response()->json($pacijenti);
-        } else {
+
+            return PacijentResource::collection($pacijenti);
+         } else {
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
-        }
     }
+}
 
     /**
      * Store a newly created resource in storage.
@@ -76,21 +78,23 @@ class PacijentController extends Controller
     public function show(Pacijent $pacijent)
     {
         $user = auth()->user();
-        
+    
         if ($user->isAdmin()) {
-            return response()->json($pacijent);
-        } elseif ($user->isDoktor()) {
-            // Lekar može videti samo svoje pacijente
-            if (!$pacijent->zdravstveniKarton || $pacijent->zdravstveniKarton->lekar_id !== $user->id) {
+            return new PacijentResource($pacijent);
+        }
+    
+        if ($user->isDoktor()) {
+            if (!$pacijent->zdravstveniKarton || $pacijent->zdravstveniKarton->user_id !== $user->id) {
                 return response()->json(['message' => 'Nedozvoljen pristup'], 403);
             }
-            return response()->json($pacijent);
-        } elseif ($user->isPacijent() && $pacijent->user_id === $user->id) {
-            // Pacijent može videti samo svoje podatke
-            return response()->json($pacijent);
-        } else {
-            return response()->json(['message' => 'Nedozvoljen pristup'], 403);
+            return new PacijentResource($pacijent);
         }
+    
+        if ($user->isPacijent() && $pacijent->user_id === $user->id) {
+            return new PacijentResource($pacijent);
+        }
+    
+        return response()->json(['message' => 'Nedozvoljen pristup'], 403);
     }
 
     public function update(Request $request, Pacijent $pacijent)

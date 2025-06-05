@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ZdravstveniKartonResource;
 use App\Models\ZdravstveniKarton;
 use App\Models\Pacijent;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class ZdravstveniKartonController extends Controller
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
         }
 
-        return response()->json($kartoni);
+        return ZdravstveniKartonResource::collection($kartoni);
     }
 
     /**
@@ -94,7 +95,7 @@ class ZdravstveniKartonController extends Controller
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
         }
 
-        return response()->json($karton->load(['pacijent', 'lekar']));
+        return new ZdravstveniKartonResource($karton->load(['pacijent', 'lekar']));
     }
 
     /**

@@ -2,63 +2,93 @@
 
 namespace Database\Seeders;
 
-//use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Pacijent;
 use App\Models\User;
 use App\Models\ZdravstveniKarton;
+use Illuminate\Database\Seeder;
 
 class ZdravstveniKartonSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
-        // Dohvati sve pacijente
-        $pacijenti = Pacijent::all();
-        
-        // Dohvati doktore
-        $lekari = User::where('role', 'doktor')->get();
+        // Kreiraj kartone samo ako ne postoje
+        if (ZdravstveniKarton::count() === 0) {
+            $pacijenti = Pacijent::all();
+            $lekari = User::where('role', 'doktor')->get();
 
-        foreach ($pacijenti as $pacijent) {
-            ZdravstveniKarton::create([
-                'pacijent_id' => $pacijent->id,
-                'user_id' => $lekari->random()->id,
-                'visina' => rand(150, 200),
-                'tezina' => rand(50, 120),
-                'krvni_pritisak' => rand(100, 140) . '/' . rand(60, 90),
-                'dijagnoza' => $this->generateRandomDiagnosis(),
-                'tretman' => $this->generateRandomTreatment(),
-            ]);
+            foreach ($pacijenti as $pacijent) {
+                $lekar = $lekari->random();
+                
+                ZdravstveniKarton::create([
+                    'pacijent_id' => $pacijent->id,
+                    'user_id' => $lekar->id,
+                    'visina' => $this->generateHeight($pacijent->pol),
+                    'tezina' => $this->generateWeight($pacijent->pol),
+                    'krvni_pritisak' => $this->generateBloodPressure(),
+                    'dijagnoza' => $this->generateRandomDiagnosis($lekar->name),
+                    'tretman' => $this->generateRandomTreatment($lekar->name),
+                ]);
+            }
         }
     }
 
-    private function generateRandomDiagnosis()
+    private function generateHeight($gender)
+    {
+        return $gender === 'muški' ? rand(165, 200) : rand(150, 185);
+    }
+
+    private function generateWeight($gender)
+    {
+        return $gender === 'muški' ? rand(60, 120) : rand(50, 90);
+    }
+
+    private function generateBloodPressure()
+    {
+        $systolic = rand(100, 140);
+        $diastolic = rand(60, 90);
+        return "$systolic/$diastolic";
+    }
+
+    private function generateRandomDiagnosis($doctorName)
     {
         $diagnoses = [
-            'Hipertenzija',
-            'Dijabetes tip 2',
-            'Hiperholesterolemija',
-            'Astma',
-            'Kronična opstruktivna bolest pluća',
-            'Zdrav'
+            "Hipertenzija (utvrdio dr. $doctorName)",
+            "Dijabetes tip 2",
+            "Hiperholesterolemija",
+            "Astma",
+            "KOPB",
+            "Zdrav - potvrđeno " . now()->format('Y'),
+            "Migrena",
+            "Artritis"
         ];
         
         return $diagnoses[array_rand($diagnoses)];
     }
 
-    private function generateRandomTreatment()
+    private function generateRandomTreatment($doctorName)
     {
         $treatments = [
-            'Redovno merenje krvnog pritiska',
-            'Dijeta i vežbanje',
-            'Medikamentna terapija',
-            'Redovne kontrole',
-            'Nema potrebe za tretmanom'
+            "Redovne kontrole kod dr. $doctorName",
+            "Terapija: " . $this->generateMedication(),
+            "Dijeta i vežbanje",
+            "Fizikalna terapija",
+            "Hitna intervencija po potrebi",
+            "Kontrola za 3 meseca",
+            "Nema potrebe za tretmanom"
         ];
         
         return $treatments[array_rand($treatments)];
     }
-    
+
+    private function generateMedication()
+    {
+        $meds = [
+            "Ambroxol 30mg 1x1",
+            "Brufen 400mg po potrebi",
+            "Lozartan 50mg 1x1",
+            "Metformin 500mg 2x1",
+            "Ventolin inhalacija"
+        ];
+        return $meds[array_rand($meds)];
+    }
 }

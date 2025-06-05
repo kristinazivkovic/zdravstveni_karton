@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pregled;
 use App\Models\ZdravstveniKarton;
+use App\Http\Resources\PregledResource;
+
 
 class PregledController extends Controller
 {
@@ -18,27 +20,24 @@ class PregledController extends Controller
         $user = auth()->user();
         
         if ($user->isDoktor()) {
-            // Doktor vidi sve preglede koje je izvršio
             $pregledi = Pregled::with(['karton', 'lekar'])
                 ->where('lekar_id', $user->id)
                 ->get();
         } elseif ($user->isPacijent()) {
-            // Pacijent vidi samo svoje preglede
             $karton = ZdravstveniKarton::where('user_id', $user->id)->first();
             
             if (!$karton) {
                 return response()->json(['message' => 'Zdravstveni karton nije pronađen'], 404);
             }
-            
+    
             $pregledi = Pregled::with(['karton', 'lekar'])
                 ->where('karton_id', $karton->id)
                 ->get();
         } else {
-            // Admin ili drugi korisnici nemaju pristup
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
         }
-
-        return response()->json($pregledi);
+    
+        return PregledResource::collection($pregledi);
     }
 
     public function store(Request $request)
@@ -68,12 +67,10 @@ class PregledController extends Controller
         $user = auth()->user();
         
         if ($user->isDoktor()) {
-            // Doktor može videti pregled samo ako je on njegov
             if ($pregled->lekar_id !== $user->id) {
                 return response()->json(['message' => 'Nemate pristup ovom pregledu'], 403);
             }
         } elseif ($user->isPacijent()) {
-            // Pacijent može videti pregled samo ako pripada njegovom kartonu
             $karton = ZdravstveniKarton::where('user_id', $user->id)->first();
             
             if (!$karton || $pregled->karton_id !== $karton->id) {
@@ -82,9 +79,10 @@ class PregledController extends Controller
         } else {
             return response()->json(['message' => 'Nedozvoljen pristup'], 403);
         }
-
-        return response()->json($pregled->load(['karton', 'lekar']));
+    
+        return new PregledResource($pregled->load(['karton', 'lekar']));
     }
+    
 
     public function update(Request $request, Pregled $pregled)
     {

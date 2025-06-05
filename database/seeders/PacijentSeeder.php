@@ -4,33 +4,54 @@ namespace Database\Seeders;
 
 use App\Models\Pacijent;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class PacijentSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run()
     {
-        
-        // Dohvati sve pacijente (korisnike sa rolom pacijent)
-        $pacijentiUsers = User::where('role', 'pacijent')->get();
+        // Kreiraj 10 pacijenata ako već ne postoje
+        if (Pacijent::count() === 0) {
+            $lekari = User::where('role', 'doktor')->get();
+            
+            for ($i = 0; $i < 10; $i++) {
+                $ime = $this->generateFirstName();
+                $prezime = $this->generateLastName();
+                $email = Str::lower($ime . '.' . $prezime . '@example.com');
+                
+                $user = User::create([
+                    'name' => $ime . ' ' . $prezime,
+                    'email' => $email,
+                    'password' => bcrypt('password'),
+                    'role' => 'pacijent',
+                ]);
 
-        foreach ($pacijentiUsers as $user) {
-            Pacijent::create([
-                'user_id' => $user->id,
-                'ime' => $user->name,
-                'prezime' => explode(' ', $user->name)[1] ?? 'Prezime',
-                'jmbg' => $this->generateJMBG(),
-                'datum_rodjenja' => now()->subYears(rand(18, 80))->format('Y-m-d'),
-                'pol' => rand(0, 1) ? 'M' : 'Ž',
-                'telefon' => '06' . rand(1000000, 9999999),
-                'email' => $user->email,
-                'istorija_pacijenta' => $this->generateMedicalHistory(),
-            ]);
+                Pacijent::create([
+                    'user_id' => $user->id,
+                    'ime' => $ime,
+                    'prezime' => $prezime,
+                    'jmbg' => $this->generateJMBG(),
+                    'datum_rodjenja' => $this->generateBirthDate(),
+                    'pol' => $this->generateGender(),
+                    'telefon' => $this->generatePhoneNumber(),
+                    'email' => $email,
+                    'istorija_pacijenta' => $this->generateMedicalHistory($lekari->random()->id),
+                ]);
+            }
         }
+    }
+
+    private function generateFirstName()
+    {
+        $names = ['Ana', 'Marko', 'Jovana', 'Nikola', 'Milica', 'Stefan', 'Sofija', 'Luka', 'Ema', 'Vuk'];
+        return $names[array_rand($names)];
+    }
+
+    private function generateLastName()
+    {
+        $lastNames = ['Petrović', 'Jovanović', 'Nikolić', 'Marković', 'Đorđević', 'Stojanović', 'Ilić', 'Pavlović'];
+        return $lastNames[array_rand($lastNames)];
     }
 
     private function generateJMBG()
@@ -38,13 +59,43 @@ class PacijentSeeder extends Seeder
         return rand(1000000000000, 9999999999999);
     }
 
-    private function generateMedicalHistory()
+    private function generateBirthDate()
     {
-        $conditions = ['Alergija na penicilin', 'Hipertenzija', 'Dijabetes', 'Astma', 'Nema poznatih bolesti'];
-        $treatments = ['Terapija vitaminima', 'Redovne kontrole', 'Fizikalna terapija', 'Nema potrebe za terapijom'];
+        return now()->subYears(rand(18, 80))->subDays(rand(0, 365))->format('Y-m-d');
+    }
+
+    private function generateGender()
+    {
+        return rand(0, 1) ? 'muški' : 'ženski';
+    }
+
+    private function generatePhoneNumber()
+    {
+        return '06' . rand(10, 99) . '-' . rand(100, 999) . '-' . rand(100, 999);
+    }
+
+    private function generateMedicalHistory($lekarId)
+    {
+        $conditions = [
+            'Alergija na penicilin',
+            'Hipertenzija',
+            'Dijabetes tip 2',
+            'Astma',
+            'Povijest srčanih problema',
+            'Nema poznatih bolesti'
+        ];
+        
+        $treatments = [
+            'Terapija vitaminima',
+            'Redovne kontrole kod lekara ID: ' . $lekarId,
+            'Fizikalna terapija',
+            'Antihipertenzivna terapija',
+            'Inhalatori',
+            'Nema potrebe za terapijom'
+        ];
         
         return "Dijagnoze: " . $conditions[array_rand($conditions)] . "\n" .
-               "Tretmani: " . $treatments[array_rand($treatments)];
+               "Tretmani: " . $treatments[array_rand($treatments)] . "\n" .
+               "Poslednji pregled: " . now()->subMonths(rand(1, 12))->format('Y-m-d');
     }
-    
 }
