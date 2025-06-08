@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+    return Inertia::render('login');
+})->name('login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -15,6 +15,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
+Route::get('/dashboard', function () {
+    return Inertia::render('dashboard');
+})->name('dashboard');
+
+Route::post('/login', [AuthController::class, 'login']);
 /* 
 // Rute za kartone (pravljena u okviru pacijenta)
 Route::get('kartoni/create/{pacijent}', [ZdravstveniKartonController::class, 'create'])->name('kartoni.create');

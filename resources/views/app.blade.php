@@ -1,12 +1,14 @@
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<!-- filepath: resources/views/app.blade.php -->
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zdravstveni karton</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title inertia>{{ config('app.name', 'Laravel') }}</title>
+    @vite('resources/js/app.tsx')
+    @inertiaHead
 </head>
-<body>
-    <div class="container">
-        @yield('content')
-    </div>
+<body class="font-sans antialiased">
+    @inertia
 </body>
 </html>

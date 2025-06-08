@@ -258,11 +258,4 @@ class ZdravstveniKartonController extends Controller
             "Content-Disposition" => "attachment; filename=\"zdravstveni_kartoni.csv\"",
         ]);
     }
-
-    return response()->stream($callback, 200, [
-        "Content-Type" => "text/csv",
-        "Content-Disposition" => "attachment; filename=\"zdravstveni_kartoni.csv\"",
-    ]);
-}
-
 }
