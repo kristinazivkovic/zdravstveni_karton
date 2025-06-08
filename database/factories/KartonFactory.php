@@ -15,6 +15,7 @@ class ZdravstveniKartonFactory extends Factory
         return [
             'pacijent_id' => \App\Models\Pacijent::factory(),
             'user_id' => User::factory(),
+            'krvna_grupa' => $this->faker->randomElement(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
             'visina' => $this->faker->numberBetween(150, 200),
             'tezina' => $this->faker->numberBetween(50, 120),
             'krvni_pritisak' => $this->faker->numerify('###/##'),

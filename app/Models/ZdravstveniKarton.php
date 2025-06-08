@@ -12,6 +12,7 @@ class ZdravstveniKarton extends Model
     protected $fillable = [
         'pacijent_id',
         'user_id',
+        'krvna_grupa',
         'visina',
         'tezina',
         'krvni_pritisak',
@@ -20,7 +21,8 @@ class ZdravstveniKarton extends Model
     ];
     protected $table = 'zdravstveni_kartoni';
 
-
+    public static $krvneGrupe = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', '0+', '0-'];
+    
     public function pacijent()
     {
         return $this->belongsTo(Pacijent::class);

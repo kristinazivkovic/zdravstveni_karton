@@ -11,6 +11,8 @@ class ZdravstveniKartonSeeder extends Seeder
 {
     public function run()
     {
+
+        $krvneGrupe = ZdravstveniKarton::$krvneGrupe;
         // Kreiraj kartone samo ako ne postoje
         if (ZdravstveniKarton::count() === 0) {
             $pacijenti = Pacijent::all();
@@ -24,11 +26,21 @@ class ZdravstveniKartonSeeder extends Seeder
                     'user_id' => $lekar->id,
                     'visina' => $this->generateHeight($pacijent->pol),
                     'tezina' => $this->generateWeight($pacijent->pol),
+                    'krvna_grupa' => $krvneGrupe[array_rand($krvneGrupe)],
                     'krvni_pritisak' => $this->generateBloodPressure(),
                     'dijagnoza' => $this->generateRandomDiagnosis($lekar->name),
                     'tretman' => $this->generateRandomTreatment($lekar->name),
                 ]);
             }
+        }else {
+            // Ako već postoje kartoni, samo ažuriraj krvnu grupu
+            ZdravstveniKarton::whereNull('krvna_grupa')
+                ->get()
+                ->each(function ($karton) use ($krvneGrupe) {
+                    $karton->update([
+                        'krvna_grupa' => $krvneGrupe[array_rand($krvneGrupe)]
+                    ]);
+                });
         }
     }
 
